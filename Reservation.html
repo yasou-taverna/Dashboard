@@ -29,7 +29,6 @@
     padding: 0 14px;
   }
 
-  /* STEP CARD */
   .card {
     background: #fff;
     border-radius: 14px;
@@ -60,7 +59,6 @@
     flex-shrink: 0;
   }
 
-  /* FORM */
   .form-row { margin-bottom: 14px; }
   label {
     display: block;
@@ -88,7 +86,6 @@
   }
   .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
-  /* BUTTONS */
   .btn {
     width: 100%;
     padding: 13px;
@@ -100,8 +97,9 @@
     transition: opacity 0.2s, transform 0.1s;
   }
   .btn:active { transform: scale(0.98); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
   .btn-primary { background: #1a3a1a; color: #fff; }
-  .btn-primary:hover { opacity: 0.88; }
+  .btn-primary:hover:not(:disabled) { opacity: 0.88; }
   .btn-whatsapp { background: #25d366; color: #fff; margin-top: 8px; }
   .btn-whatsapp:hover { opacity: 0.88; }
   .btn-bit { background: #0057b7; color: #fff; }
@@ -109,10 +107,10 @@
   .btn-back {
     background: none; border: 1.5px solid #aaa;
     color: #555; width: auto; padding: 9px 18px;
-    margin-bottom: 14px; font-size: 0.88rem; border-radius: 8px;
+    margin-bottom: 14px; font-size: 0.88rem;
+    border-radius: 8px; cursor: pointer;
   }
 
-  /* STATUS / RESULT */
   .status-box {
     border-radius: 10px;
     padding: 14px 16px;
@@ -120,11 +118,10 @@
     line-height: 1.55;
     margin-bottom: 14px;
   }
-  .status-ok { background: #e9f7ee; color: #1a5e30; border: 1.5px solid #6fcf97; }
+  .status-ok   { background: #e9f7ee; color: #1a5e30; border: 1.5px solid #6fcf97; }
   .status-busy { background: #fff0f0; color: #c0392b; border: 1.5px solid #e07070; }
   .status-info { background: #fff8e8; color: #7a5200; border: 1.5px solid #e0b840; }
 
-  /* SUMMARY */
   .summary-box {
     background: #f7f4ee;
     border-radius: 10px;
@@ -135,15 +132,18 @@
     border: 1px solid #e0d5c0;
   }
   .summary-box strong { color: #1a3a1a; }
+
   .amount-highlight {
-    font-size: 1.3rem;
+    font-size: 1.4rem;
     font-weight: bold;
     color: #0057b7;
     text-align: center;
     margin: 10px 0 14px;
+    background: #eef5ff;
+    padding: 10px;
+    border-radius: 8px;
   }
 
-  /* STEPS NAV */
   .steps-indicator {
     display: flex;
     justify-content: center;
@@ -157,7 +157,26 @@
     transition: background 0.3s;
   }
   .step-dot.active { background: #c8973a; }
-  .step-dot.done { background: #2e7d32; }
+  .step-dot.done   { background: #2e7d32; }
+
+  /* Loading spinner */
+  .spinner-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px 0;
+    color: #555;
+    font-size: 0.9rem;
+  }
+  .spinner {
+    width: 22px; height: 22px;
+    border: 3px solid #ddd;
+    border-top-color: #c8973a;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
   .hidden { display: none !important; }
   .err { color: #c0392b; font-size: 0.82rem; margin-top: 4px; }
@@ -179,7 +198,6 @@
 
 <div class="page-wrap">
 
-  <!-- STEPS INDICATOR -->
   <div class="steps-indicator">
     <div class="step-dot active" id="dot1"></div>
     <div class="step-dot" id="dot2"></div>
@@ -235,10 +253,15 @@
 
     <div id="err-general" class="status-box status-busy hidden"></div>
 
+    <div class="spinner-wrap hidden" id="loadingCheck">
+      <div class="spinner"></div>
+      בודק זמינות...
+    </div>
+
     <button class="btn btn-primary" id="btnCheck">בדיקת זמינות →</button>
   </div>
 
-  <!-- ══ STEP 2: AVAILABILITY RESULT ══ -->
+  <!-- ══ STEP 2: RESULT ══ -->
   <div id="step2" class="hidden">
     <button class="btn btn-back" id="btnBack">← חזרה</button>
 
@@ -248,23 +271,29 @@
         <h2><span class="step-badge">2</span> זמינות ותשלום פיקדון</h2>
 
         <div class="status-box status-ok" id="availMsg"></div>
-
         <div class="summary-box" id="summaryBox"></div>
 
         <div class="status-box status-info">
           <strong>שלב הפיקדון:</strong><br>
-          כדי לשריין את ההזמנה שלך, יש לשלוח ביט לפי הסכום המפורט מטה.<br>
+          כדי לשריין את ההזמנה שלך יש לשלוח ביט לפי הסכום המצוין.<br>
           לאחר השליחה לחץ על "שלחתי ביט – שריין לי מקום".
         </div>
 
         <div class="amount-highlight" id="amountDisplay"></div>
 
-        <button class="btn btn-bit" id="btnBit">💳 פתיחת אפליקציית Bit לתשלום</button>
-        <button class="btn btn-primary" id="btnConfirm" style="margin-top:10px">✅ שלחתי ביט – שריין לי מקום</button>
+        <button class="btn btn-bit" id="btnBit">💳 פתיחת Bit לתשלום</button>
+        <button class="btn btn-primary" id="btnConfirm" style="margin-top:10px">
+          ✅ שלחתי ביט – שריין לי מקום
+        </button>
+
+        <div class="spinner-wrap hidden" id="loadingConfirm">
+          <div class="spinner"></div>
+          שומר הזמנה...
+        </div>
       </div>
     </div>
 
-    <!-- Not Available -->
+    <!-- Busy -->
     <div id="resultBusy" class="hidden">
       <div class="card">
         <h2><span class="step-badge">2</span> תוצאת הבדיקה</h2>
@@ -279,24 +308,20 @@
     </div>
   </div>
 
-  <!-- ══ STEP 3: CONFIRMATION ══ -->
+  <!-- ══ STEP 3: DONE ══ -->
   <div id="step3" class="hidden">
     <div class="card">
-      <h2><span class="step-badge">3</span> ההזמנה נקלטה!</h2>
+      <h2><span class="step-badge">3</span> ההזמנה נקלטה! 🎉</h2>
 
       <div class="status-box status-ok">
         <strong>תודה!</strong> קיבלנו את בקשתך.<br>
-        הודעת אישור נשלחה אלינו ואנו נחזור אליך בהקדם.
+        לאחר בדיקת הביט נשלח לך אישור סופי בוואטסאפ.
       </div>
 
       <div class="summary-box" id="confirmSummary"></div>
 
-      <div class="status-box status-info" style="margin-top:0">
-        לאחר בדיקת הביט נשלח לך אישור סופי בוואטסאפ.
-      </div>
-
       <button class="btn btn-whatsapp" id="btnDoneWA" style="margin-top:6px">
-        📲 שלח הודעה לרסטורנט
+        📲 שלח הודעה לרסטורנט (אישור ביט)
       </button>
     </div>
   </div>
@@ -306,19 +331,20 @@
 <footer>יאסו טברנה רודוס &copy; כל הזכויות שמורות</footer>
 
 <script>
-// ─── CONFIG ──────────────────────────────────────────────
+// ─── CONFIG ──────────────────────────────────────────
+const SCRIPT_URL  = "https://script.google.com/macros/s/AKfycbw6Qr1Q9pGxpyuTTSp6AmCyMcfBUfhUQV0pglmGTEoQ4m5r73gJrrs1Q4DN4Ig1xCIR7w/exec";
 const RESTAURANT  = "יאסו טברנה רודוס";
-const BIT_PHONE   = "0532808988";        // מספר ביט (ישראלי)
-const WA_IL       = "972532808988";      // וואטסאפ ישראלי
-const WA_GR       = "306981899433";      // וואטסאפ יווני
-const DEPOSIT_PER = 100;                  // ₪ לסועד
+const BIT_PHONE   = "0532808988";
+const WA_IL       = "972532808988";
+const WA_GR       = "306981899433";
+const DEPOSIT     = 100; // ₪ לסועד
 const OPEN_HOUR   = 12;
 const CLOSE_HOUR  = 23;
 
-// ─── STATE ───────────────────────────────────────────────
+// ─── STATE ───────────────────────────────────────────
 let booking = {};
 
-// ─── HELPERS ─────────────────────────────────────────────
+// ─── HELPERS ─────────────────────────────────────────
 function fmtDate(iso) {
   const [y,m,d] = iso.split("-");
   return `${d}.${m}.${y}`;
@@ -329,28 +355,11 @@ function fmtGuests(n) {
 function waUrl(phone, msg) {
   return `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
 }
-function loadReservations() {
-  try {
-    const s = localStorage.getItem("yasou_state");
-    if (!s) return [];
-    const parsed = JSON.parse(s);
-    return parsed.reservations || [];
-  } catch(e) { return []; }
-}
-function isSlotBusy(date, timeStr) {
-  const reservations = loadReservations();
-  const [h,m] = timeStr.split(":").map(Number);
-  const slotMs = h * 60 + m;
-  return reservations.some(r => {
-    if (r.status === "cancelled") return false;
-    if (r.date !== date) return false;
-    const [rh, rm] = (r.time || "00:00").split(":").map(Number);
-    const rMs = rh * 60 + rm;
-    return Math.abs(slotMs - rMs) < 90; // חפיפה של פחות מ-1.5 שעות
-  });
+function setLoading(id, show) {
+  document.getElementById(id).classList.toggle("hidden", !show);
 }
 
-// ─── STEPS ───────────────────────────────────────────────
+// ─── STEPS ───────────────────────────────────────────
 function showStep(n) {
   document.getElementById("step1").classList.toggle("hidden", n !== 1);
   document.getElementById("step2").classList.toggle("hidden", n !== 2);
@@ -363,7 +372,7 @@ function showStep(n) {
   });
 }
 
-// ─── STEP 1: VALIDATE & CHECK ────────────────────────────
+// ─── VALIDATE ────────────────────────────────────────
 function validate() {
   let ok = true;
   const name   = document.getElementById("fName").value.trim();
@@ -372,11 +381,10 @@ function validate() {
   const time   = document.getElementById("fTime").value;
   const guests = document.getElementById("fGuests").value;
 
-  function showErr(id, show) {
-    document.getElementById(id).classList.toggle("hidden", !show);
-    if (show) ok = false;
+  function showErr(id, bad) {
+    document.getElementById(id).classList.toggle("hidden", !bad);
+    if (bad) ok = false;
   }
-
   showErr("err-name",   name.length < 2);
   showErr("err-phone",  phone.length < 7);
   showErr("err-date",   !date);
@@ -388,16 +396,14 @@ function validate() {
 
   if (!ok) return false;
 
-  // Date in past?
+  // Past date?
   const today = new Date(); today.setHours(0,0,0,0);
-  const chosen = new Date(date);
-  if (chosen < today) {
+  if (new Date(date) < today) {
     gen.textContent = "לא ניתן להזמין לתאריך שעבר.";
     gen.classList.remove("hidden"); return false;
   }
-
-  // Hours check
-  const [h] = time.split(":").map(Number);
+  // Hours?
+  const h = parseInt(time.split(":")[0]);
   if (h < OPEN_HOUR || h >= CLOSE_HOUR) {
     gen.textContent = `שעות פעילות: ${OPEN_HOUR}:00–${CLOSE_HOUR}:00.`;
     gen.classList.remove("hidden"); return false;
@@ -407,61 +413,118 @@ function validate() {
   return true;
 }
 
-document.getElementById("btnCheck").addEventListener("click", () => {
+// ─── CHECK AVAILABILITY (Google Sheets) ──────────────
+document.getElementById("btnCheck").addEventListener("click", async () => {
   if (!validate()) return;
 
-  const busy = isSlotBusy(booking.date, booking.time);
+  const btn = document.getElementById("btnCheck");
+  btn.disabled = true;
+  setLoading("loadingCheck", true);
+
+  try {
+    const url = `${SCRIPT_URL}?action=getReservations`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const reservations = data.reservations || [];
+
+    const [newH, newM] = booking.time.split(":").map(Number);
+    const newMins = newH * 60 + newM;
+
+    const busy = reservations.some(r => {
+      if (r.status === "cancelled") return false;
+      if (r.date !== booking.date) return false;
+      const [rh, rm] = String(r.time || "0:0").split(":").map(Number);
+      return Math.abs(newMins - (rh * 60 + rm)) < 90;
+    });
+
+    showResult(busy);
+
+  } catch(err) {
+    // Fallback: if Sheets unreachable, allow booking
+    console.warn("Sheets error, fallback:", err);
+    showResult(false);
+  } finally {
+    btn.disabled = false;
+    setLoading("loadingCheck", false);
+  }
+});
+
+function showResult(busy) {
+  const amount = Number(booking.guests) * DEPOSIT;
+  booking.amount = amount;
 
   showStep(2);
   document.getElementById("resultAvail").classList.toggle("hidden",  busy);
   document.getElementById("resultBusy").classList.toggle("hidden",  !busy);
 
-  const amount = Number(booking.guests) * DEPOSIT_PER;
-  booking.amount = amount;
-
   if (!busy) {
     document.getElementById("availMsg").innerHTML =
-      `✅ <strong>השעה ${booking.time} בתאריך ${fmtDate(booking.date)} פנויה!</strong><br>` +
-      `כדי לשריין מקום יש לשלוח פיקדון בביט.`;
+      `✅ <strong>השעה ${booking.time} בתאריך ${fmtDate(booking.date)} פנויה!</strong>`;
     document.getElementById("summaryBox").innerHTML =
       `<strong>שם:</strong> ${booking.name}<br>` +
       `<strong>טלפון:</strong> ${booking.phone}<br>` +
       `<strong>תאריך:</strong> ${fmtDate(booking.date)}<br>` +
       `<strong>שעה:</strong> ${booking.time}<br>` +
       `<strong>סועדים:</strong> ${fmtGuests(booking.guests)}`;
-    document.getElementById("amountDisplay").textContent =
-      `סכום לביט: ₪${amount}`;
+    document.getElementById("amountDisplay").textContent = `סכום לביט: ₪${amount}`;
   } else {
     document.getElementById("busyMsg").innerHTML =
-      `⛔ <strong>אין מקום פנוי בשעה ${booking.time} ב-${fmtDate(booking.date)}.</strong><br>` +
-      `נסה שעה קרובה אחרת או צור קשר.`;
+      `⛔ <strong>אין מקום פנוי בשעה ${booking.time} ב-${fmtDate(booking.date)}.</strong><br>נסה שעה אחרת.`;
     document.getElementById("btnContactWA").onclick = () => {
       const msg = `שלום, רציתי לברר זמינות לתאריך ${fmtDate(booking.date)} שעה ${booking.time} עבור ${fmtGuests(booking.guests)}.`;
       window.open(waUrl(WA_IL, msg), "_blank");
     };
   }
-});
+}
 
-// ─── BIT BUTTON ─────────────────────────────────────────
+// ─── BIT BUTTON ──────────────────────────────────────
 document.getElementById("btnBit").addEventListener("click", () => {
-  const amount = booking.amount || 0;
-  // Deep-link to Bit app; fallback to wa.me
-  const bitUrl = `bit://transfer?phone=${BIT_PHONE}&amount=${amount}&note=פיקדון+הזמנה+${encodeURIComponent(RESTAURANT)}`;
-  window.location.href = bitUrl;
-  // After 1.5s, if still here, open app store fallback in background (no redirect needed)
+  const note = encodeURIComponent(`פיקדון ${RESTAURANT}`);
+  window.location.href = `bit://transfer?phone=${BIT_PHONE}&amount=${booking.amount}&note=${note}`;
 });
 
-// ─── CONFIRM BUTTON ─────────────────────────────────────
-document.getElementById("btnConfirm").addEventListener("click", () => {
-  showStep(3);
+// ─── CONFIRM (save to Sheets + WhatsApp) ─────────────
+document.getElementById("btnConfirm").addEventListener("click", async () => {
+  const btn = document.getElementById("btnConfirm");
+  btn.disabled = true;
+  setLoading("loadingConfirm", true);
 
+  const payload = {
+    customerName: booking.name,
+    phone:        booking.phone,
+    date:         booking.date,
+    time:         booking.time,
+    guests:       booking.guests,
+    amount:       booking.amount,
+    status:       "active"
+  };
+
+  try {
+    await fetch(SCRIPT_URL + "?action=addReservation", {
+      method: "POST",
+      body: JSON.stringify(payload)
+    });
+  } catch(e) {
+    console.warn("Save error:", e);
+  } finally {
+    btn.disabled = false;
+    setLoading("loadingConfirm", false);
+  }
+
+  // WhatsApp message
   const msg =
-    `שלום! שלחתי ביט של ₪${booking.amount} (₪${DEPOSIT_PER} לסועד).\n` +
-    `בקשת הזמנה:\n` +
-    `שם: ${booking.name}\n` +
-    `טלפון: ${booking.phone}\n` +
-    `תאריך: ${fmtDate(booking.date)} שעה ${booking.time}\n` +
-    `סועדים: ${fmtGuests(booking.guests)}`;
+    `🍽️ הזמנה חדשה – ${RESTAURANT}\n` +
+    `━━━━━━━━━━━━━━━\n` +
+    `👤 שם: ${booking.name}\n` +
+    `📞 טלפון: ${booking.phone}\n` +
+    `📅 תאריך: ${fmtDate(booking.date)}\n` +
+    `🕐 שעה: ${booking.time}\n` +
+    `👥 סועדים: ${fmtGuests(booking.guests)}\n` +
+    `💳 ביט ששולם: ₪${booking.amount}\n` +
+    `━━━━━━━━━━━━━━━\n` +
+    `נא לאשר הזמנה לאחר בדיקת הביט.`;
+
+  booking.waMsg = msg;
 
   document.getElementById("confirmSummary").innerHTML =
     `<strong>שם:</strong> ${booking.name}<br>` +
@@ -469,29 +532,28 @@ document.getElementById("btnConfirm").addEventListener("click", () => {
     `<strong>תאריך:</strong> ${fmtDate(booking.date)}<br>` +
     `<strong>שעה:</strong> ${booking.time}<br>` +
     `<strong>סועדים:</strong> ${fmtGuests(booking.guests)}<br>` +
-    `<strong>פיקדון ששולם:</strong> ₪${booking.amount}`;
-
-  // Pre-build WhatsApp links for both numbers
-  booking.msgIL = waUrl(WA_IL, msg);
-  booking.msgGR = waUrl(WA_GR, msg);
+    `<strong>פיקדון:</strong> ₪${booking.amount}`;
 
   document.getElementById("btnDoneWA").onclick = () => {
-    window.open(booking.msgIL, "_blank");
-    setTimeout(() => window.open(booking.msgGR, "_blank"), 600);
+    window.open(waUrl(WA_IL, booking.waMsg), "_blank");
+    setTimeout(() => window.open(waUrl(WA_GR, booking.waMsg), "_blank"), 800);
   };
+
+  showStep(3);
+  // Auto-open WhatsApp
+  setTimeout(() => document.getElementById("btnDoneWA").click(), 400);
 });
 
-// ─── BACK ────────────────────────────────────────────────
+// ─── BACK ────────────────────────────────────────────
 document.getElementById("btnBack").addEventListener("click", () => showStep(1));
 
-// ─── INIT ────────────────────────────────────────────────
+// ─── INIT ────────────────────────────────────────────
 (function() {
-  // Set min date = today
   const today = new Date();
   const pad = n => String(n).padStart(2,"0");
-  const todayStr = `${today.getFullYear()}-${pad(today.getMonth()+1)}-${pad(today.getDate())}`;
-  document.getElementById("fDate").min = todayStr;
-  document.getElementById("fDate").value = todayStr;
+  const iso = `${today.getFullYear()}-${pad(today.getMonth()+1)}-${pad(today.getDate())}`;
+  document.getElementById("fDate").min = iso;
+  document.getElementById("fDate").value = iso;
   document.getElementById("fTime").value = "12:00";
   showStep(1);
 })();
