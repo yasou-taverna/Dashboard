@@ -1047,22 +1047,20 @@ button {
 <script>
     
     const STORAGE_KEY = "yasou-taverna-spa-v1";
-    const SHEETS_URL = "https://script.google.com/macros/s/AKfycbw6Qr1Q9pGxpyuTTSp6AmCyMcfBUfhUQV0pglmGTEoQ4m5r73gJrrs1Q4DN4Ig1xCIR7w/exec";
+    const SHEETS_URL = "https://script.google.com/macros/s/AKfycbxo9ZJ17p4LIYKRCP5sqTXrMK0Se7FVLtyj_drR86SWBscw2VY5XkmadgK_0iuAaoFHTQ/exec";
 
     // ─── Google Sheets sync ──────────────────────────────
-    async function syncToSheets(action, payload) {
-      try {
-        await fetch(SHEETS_URL + "?action=" + action, {
-          method: "POST",
-          body: JSON.stringify(payload)
-        });
-      } catch(e) { console.warn("Sheets sync:", e); }
-    }
-    async function pullFromSheets() {
-      try {
-        const res  = await fetch(SHEETS_URL + "?action=getReservations");
-        const data = await res.json();
-        const sheetRes = (data.reservations || []).map(r => ({
+  async function syncToSheets(action, payload){
+  await fetch(`${SHEETS_URL}?action=${action}`,{
+    method: "POST",
+    mode: "cors",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify(payload)
+  });
+}
+async function pullFromSheets(){
+  const res = await fetch(`${SHEETS_URL}?action=getReservations`, { mode: "cors" });
+  const data = await res.json();        const sheetRes = (data.reservations || []).map(r => ({
           id:           String(r.id || ""),
           customerName: String(r.customerName || ""),
           phone:        String(r.phone || ""),
